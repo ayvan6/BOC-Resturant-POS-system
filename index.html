@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOC Restaurant POS</title>
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js for reactive UI components -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        redCustom: '#9F1239',
+                        redLight: '#E11D48',
+                        redDark: '#881337',
+                        cream: '#FFF7ED',
+                        creamDark: '#FFEDD5',
+                        darker: '#111827',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-cream font-sans text-gray-800 h-screen flex overflow-hidden" x-data="posApp()">
+
+    <!-- SIDEBAR -->
+    <aside class="w-60 bg-darker text-white flex flex-col justify-between shrink-0">
+        <div>
+            <!-- LOGO -->
+            <div class="bg-redCustom h-28 flex flex-col items-center justify-center pt-4">
+                <h1 class="text-3xl font-extrabold tracking-wider">BOC</h1>
+                <span class="text-xs font-bold text-cream tracking-widest mt-1">RESTAURANT POS</span>
+            </div>
+
+            <!-- NAVIGATION -->
+            <nav class="mt-4 flex flex-col space-y-1">
+                <button @click="currentTab = 'dashboard'" :class="currentTab === 'dashboard' ? 'bg-redCustom text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'" class="flex items-center px-6 py-3.5 text-left font-bold transition-colors">
+                    <span class="mr-4 text-lg">⌂</span> Dashboard
+                </button>
+                <button @click="currentTab = 'new_order'" :class="currentTab === 'new_order' ? 'bg-redCustom text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'" class="flex items-center px-6 py-3.5 text-left font-bold transition-colors">
+                    <span class="mr-4 text-lg">🍽</span> New Order
+                </button>
+                <button @click="currentTab = 'orders'" :class="currentTab === 'orders' ? 'bg-redCustom text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'" class="flex items-center px-6 py-3.5 text-left font-bold transition-colors">
+                    <span class="mr-4 text-lg">▣</span> Orders
+                </button>
+                <button @click="currentTab = 'menu'" :class="currentTab === 'menu' ? 'bg-redCustom text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'" class="flex items-center px-6 py-3.5 text-left font-bold transition-colors">
+                    <span class="mr-4 text-lg">▤</span> Menu
+                </button>
+            </nav>
+        </div>
+
+        <div class="p-4 text-center text-xs text-gray-500 border-t border-gray-800">
+            BOC v1.0 (Web Edition)
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-full overflow-y-auto">
+
+        <!-- ================= DASHBOARD ================= -->
+        <div x-show="currentTab === 'dashboard'" class="p-8 flex-1 flex flex-col">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-darker">Good Day 👋</h2>
+                <p class="text-gray-500 text-sm mt-1">Welcome to BOC Restaurant Management</p>
+            </div>
+
+            <!-- CARDS GRID -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded shadow-sm flex overflow-hidden border-l-4 border-redCustom p-5">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 tracking-wider">PENDING ORDERS</p>
+                        <h3 class="text-3xl font-extrabold text-darker mt-1" x-text="orders.filter(o => o.status === 'PENDING').length">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white rounded shadow-sm flex overflow-hidden border-l-4 border-blue-600 p-5">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 tracking-wider">COMPLETED</p>
+                        <h3 class="text-3xl font-extrabold text-darker mt-1" x-text="orders.filter(o => o.status === 'COMPLETED').length">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white rounded shadow-sm flex overflow-hidden border-l-4 border-green-600 p-5">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 tracking-wider">TOTAL SALES</p>
+                        <h3 class="text-3xl font-extrabold text-darker mt-1" x-text="'₹' + totalSales.toFixed(2)">₹0.00</h3>
+                    </div>
+                </div>
+                <div class="bg-white rounded shadow-sm flex overflow-hidden border-l-4 border-orange-600 p-5">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 tracking-wider">MENU ITEMS</p>
+                        <h3 class="text-3xl font-extrabold text-darker mt-1" x-text="menu.length">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WELCOME HERO -->
+            <div class="bg-white border border-creamDark rounded shadow-sm flex-1 flex flex-col items-center justify-center p-12 text-center">
+                <h2 class="text-4xl font-extrabold text-redCustom mb-2">BOC RESTAURANT</h2>
+                <p class="text-gray-500 text-lg mb-8">Fast • Simple • Reliable</p>
+                <button @click="currentTab = 'new_order'" class="bg-redCustom hover:bg-redLight text-white font-bold px-8 py-4 rounded text-lg shadow-md transition-all">
+                    + CREATE NEW ORDER
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= NEW ORDER ================= -->
+        <div x-show="currentTab === 'new_order'" class="p-8 flex-1 flex flex-col h-full overflow-hidden">
+            <div class="mb-4">
+                <h2 class="text-3xl font-bold text-darker">New Order</h2>
+                <p class="text-gray-500 text-sm mt-1">Create an order and send it to the order queue</p>
+            </div>
+
+            <!-- CUSTOMER DETAILS BAR -->
+            <div class="bg-white p-4 rounded shadow-sm flex items-center space-x-6 mb-4">
+                <div class="flex items-center space-x-2">
+                    <label class="font-bold text-sm text-gray-700">Customer</label>
+                    <input type="text" x-model="customerName" placeholder="Walk-in Customer" class="border rounded px-3 py-1.5 text-sm outline-none focus:border-redCustom">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="font-bold text-sm text-gray-700">Table</label>
+                    <input type="text" x-model="tableNumber" placeholder="-" class="border rounded px-3 py-1.5 text-sm w-20 outline-none focus:border-redCustom">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="font-bold text-sm text-gray-700">Type</label>
+                    <select x-model="orderType" class="border rounded px-3 py-1.5 text-sm outline-none focus:border-redCustom bg-white">
+                        <option>Dine In</option>
+                        <option>Takeaway</option>
+                        <option>Delivery</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- MAIN GRID CONTENT -->
+            <div class="flex-1 flex space-x-4 overflow-hidden pb-4">
+                <!-- MENU ITEMS LEFT -->
+                <div class="flex-1 bg-white rounded shadow-sm flex flex-col overflow-hidden p-4">
+                    <h3 class="font-bold text-darker text-lg mb-3">SELECT ITEMS</h3>
+                    <div class="flex-1 overflow-y-auto border rounded">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-redCustom text-white sticky top-0">
+                                <tr>
+                                    <th class="p-3 text-sm">ID</th>
+                                    <th class="p-3 text-sm">ITEM</th>
+                                    <th class="p-3 text-sm">CATEGORY</th>
+                                    <th class="p-3 text-sm">PRICE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="item in menu" :key="item.id">
+                                    <tr @click="selectedMenuId = item.id" :class="selectedMenuId === item.id ? 'bg-pink-100 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'" class="border-b">
+                                        <td class="p-3 text-sm" x-text="item.id"></td>
+                                        <td class="p-3 text-sm font-semibold" x-text="item.name"></td>
+                                        <td class="p-3 text-sm text-gray-500" x-text="item.category"></td>
+                                        <td class="p-3 text-sm font-bold text-redCustom" x-text="'₹' + item.price.toFixed(2)"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button @click="addToCart" class="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded shadow transition-all">
+                        + ADD TO ORDER
+                    </button>
+                </div>
+
+                <!-- CART RIGHT -->
+                <div class="w-96 bg-white rounded shadow-sm flex flex-col p-4">
+                    <h3 class="font-bold text-darker text-lg mb-3">CURRENT ORDER</h3>
+                    <div class="flex-1 overflow-y-auto border rounded">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-100 sticky top-0">
+                                <tr>
+                                    <th class="p-2 text-xs">ITEM</th>
+                                    <th class="p-2 text-xs">QTY</th>
+                                    <th class="p-2 text-xs">TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template x-for="(cartItem, index) in cart" :key="index">
+                                    <tr @click="selectedCartIndex = index" :class="selectedCartIndex === index ? 'bg-pink-100 cursor-pointer' : 'hover:bg-gray-50 cursor-pointer'" class="border-b">
+                                        <td class="p-2 text-xs font-semibold" x-text="cartItem.name"></td>
+                                        <td class="p-2 text-xs" x-text="cartItem.quantity"></td>
+                                        <td class="p-2 text-xs font-bold" x-text="'₹' + (cartItem.price * cartItem.quantity).toFixed(2)"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TOTAL CALCULATIONS -->
+                    <div class="mt-4 pt-2 border-t text-right space-y-1">
+                        <div class="text-sm text-gray-600">Subtotal &nbsp;&nbsp; <span class="font-bold" x-text="'₹' + cartSubtotal.toFixed(2)"></span></div>
+                        <div class="text-sm text-gray-600">Tax 5% &nbsp;&nbsp;&nbsp;&nbsp; <span class="font-bold" x-text="'₹' + cartTax.toFixed(2)"></span></div>
+                        <div class="text-xl font-extrabold text-redCustom pt-1">TOTAL &nbsp;&nbsp;&nbsp; <span x-text="'₹' + cartTotal.toFixed(2)"></span></div>
+                    </div>
+
+                    <div class="mt-4 space-y-2">
+                        <button @click="removeFromCart" class="w-full bg-red-100 hover:bg-red-200 text-redCustom font-bold py-2 rounded text-xs transition-all">
+                            REMOVE SELECTED
+                        </button>
+                        <button @click="sendOrder" class="w-full bg-redCustom hover:bg-redDark text-white font-bold py-3 rounded text-sm shadow transition-all">
+                            SEND ORDER →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ORDERS ================= -->
+        <div x-show="currentTab === 'orders'" class="p-8 flex-1 flex flex-col">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-darker">Orders</h2>
+                <p class="text-gray-500 text-sm mt-1">Manage pending restaurant orders</p>
+            </div>
+
+            <div class="bg-white rounded shadow-sm flex-1 overflow-y-auto p-4 flex flex-col">
+                <div class="flex-1 overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-redCustom text-white">
+                            <tr>
+                                <th class="p-3 text-sm">ID</th>
+                                <th class="p-3 text-sm">ORDER #</th>
+                                <th class="p-3 text-sm">CUSTOMER</th>
+                                <th class="p-3 text-sm">TABLE</th>
+                                <th class="p-3 text-sm">TYPE</th>
+                                <th class="p-3 text-sm">TOTAL</th>
+                                <th class="p-3 text-sm">STATUS</th>
+                                <th class="p-3 text-sm">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="order in orders" :key="order.id">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="p-3 text-sm" x-text="order.id"></td>
+                                    <td class="p-3 text-sm font-bold" x-text="'#' + order.order_number"></td>
+                                    <td class="p-3 text-sm" x-text="order.customer"></td>
+                                    <td class="p-3 text-sm" x-text="order.table_number"></td>
+                                    <td class="p-3 text-sm" x-text="order.order_type"></td>
+                                    <td class="p-3 text-sm font-bold text-redCustom" x-text="'₹' + order.total.toFixed(2)"></td>
+                                    <td class="p-3 text-sm">
+                                        <span :class="order.status === 'PENDING' ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-800'" class="px-2 py-1 rounded text-xs font-bold" x-text="order.status"></span>
+                                    </td>
+                                    <td class="p-3 text-sm">
+                                        <button x-show="order.status === 'PENDING'" @click="completeOrder(order.id)" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-bold">
+                                            Mark Complete
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= MENU ================= -->
+        <div x-show="currentTab === 'menu'" class="p-8 flex-1 flex flex-col">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-darker">Menu</h2>
+                <p class="text-gray-500 text-sm mt-1">Available food and prices</p>
+            </div>
+
+            <div class="bg-white rounded shadow-sm flex-1 overflow-y-auto p-4">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-redCustom text-white">
+                        <tr>
+                            <th class="p-3 text-sm">ID</th>
+                            <th class="p-3 text-sm">ITEM</th>
+                            <th class="p-3 text-sm">CATEGORY</th>
+                            <th class="p-3 text-sm">PRICE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in menu" :key="item.id">
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-3 text-sm" x-text="item.id"></td>
+                                <td class="p-3 text-sm font-semibold" x-text="item.name"></td>
+                                <td class="p-3 text-sm text-gray-500" x-text="item.category"></td>
+                                <td class="p-3 text-sm font-bold text-redCustom" x-text="'₹' + item.price.toFixed(2)"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- REACTIVE APP LOGIC -->
+    <script>
+        function posApp() {
+            return {
+                currentTab: 'dashboard',
+                customerName: '',
+                tableNumber: '',
+                orderType: 'Dine In',
+                selectedMenuId: null,
+                selectedCartIndex: null,
+                cart: [],
+                
+                // Preloaded items mirroring python code
+                menu: [
+                    { id: 1, name: "Classic Veg Burger", category: "Burgers", price: 120 },
+                    { id: 2, name: "Chicken Burger", category: "Burgers", price: 180 },
+                    { id: 3, name: "French Fries", category: "Sides", price: 80 },
+                    { id: 4, name: "Cheese Pizza", category: "Pizza", price: 250 },
+                    { id: 5, name: "Paneer Pizza", category: "Pizza", price: 280 },
+                    { id: 6, name: "White Sauce Pasta", category: "Pasta", price: 220 },
+                    { id: 7, name: "Paneer Tikka", category: "Starters", price: 180 },
+                    { id: 8, name: "Chicken Tikka", category: "Starters", price: 220 },
+                    { id: 9, name: "Cold Coffee", category: "Drinks", price: 100 },
+                    { id: 10, name: "Fresh Lime", category: "Drinks", price: 70 },
+                    { id: 11, name: "Masala Tea", category: "Drinks", price: 50 },
+                    { id: 12, name: "Chocolate Ice Cream", category: "Desserts", price: 90 }
+                ],
+
+                orders: [
+                    { id: 1, order_number: 1, customer: "John Doe", table_number: "4", order_type: "Dine In", total: 315.00, status: "PENDING" }
+                ],
+
+                get cartSubtotal() {
+                    return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                },
+
+                get cartTax() {
+                    return this.cartSubtotal * 0.05;
+                },
+
+                get cartTotal() {
+                    return this.cartSubtotal + this.cartTax;
+                },
+
+                get totalSales() {
+                    return this.orders
+                        .filter(o => o.status === 'COMPLETED')
+                        .reduce((sum, o) => sum + o.total, 0);
+                },
+
+                addToCart() {
+                    if (!this.selectedMenuId) {
+                        alert("Please select an item first.");
+                        return;
+                    }
+                    const menuItem = this.menu.find(m => m.id === this.selectedMenuId);
+                    if (menuItem) {
+                        const existing = this.cart.find(c => c.id === menuItem.id);
+                        if (existing) {
+                            existing.quantity++;
+                        } else {
+                            this.cart.push({ ...menuItem, quantity: 1 });
+                        }
+                    }
+                },
+
+                removeFromCart() {
+                    if (this.selectedCartIndex !== null && this.selectedCartIndex < this.cart.length) {
+                        this.cart.splice(this.selectedCartIndex, 1);
+                        this.selectedCartIndex = null;
+                    }
+                },
+
+                sendOrder() {
+                    if (this.cart.length === 0) {
+                        alert("Your order is empty. Please add food items first.");
+                        return;
+                    }
+
+                    const newOrder = {
+                        id: this.orders.length + 1,
+                        order_number: this.orders.length + 1,
+                        customer: this.customerName.trim() || "Walk-in Customer",
+                        table_number: this.tableNumber.trim() || "-",
+                        order_type: this.orderType,
+                        total: this.cartTotal,
+                        status: "PENDING"
+                    };
+
+                    this.orders.unshift(newOrder);
+                    alert(`Order #${newOrder.order_number} created successfully!\nTotal: ₹${newOrder.total.toFixed(2)}`);
+
+                    // Reset cart and info
+                    this.cart = [];
+                    this.customerName = '';
+                    this.tableNumber = '';
+                    this.currentTab = 'orders';
+                },
+
+                completeOrder(orderId) {
+                    const order = this.orders.find(o => o.id === orderId);
+                    if (order) {
+                        order.status = 'COMPLETED';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
