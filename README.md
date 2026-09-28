@@ -1,5 +1,7 @@
 # BOC Restaurant POS System
 
+https://ayvan6.github.io/BOC-Resturant-POS-system/
+
 **Developed by: ARYANRAJ MALEPU**
 
 BOC Restaurant POS System is a Python-based Point of Sale (POS) application designed to simplify and manage essential restaurant operations. The system provides functionality for restaurant order management, billing, database operations, and transaction handling through an easy-to-use application interface.
